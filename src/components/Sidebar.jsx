@@ -4,108 +4,98 @@ import dashboard_icon from "../assets/dashboard_icon.png";
 import add_icon from "../assets/add_icon.png";
 import order_icon from "../assets/order_icon.png";
 import list_icon from "../assets/list_icon.png";
-import analytics_icon from "../assets/analytics_icon.png"; // <-- ADD YOUR ICON HERE
+import analytics_icon from "../assets/analytics_icon.png";
 import tag_icon from "../assets/tag_icon.png";
-import  comp_icon from "../assets/comp_icon.png";
+import comp_icon from "../assets/comp_icon.png";
+
+const navItems = [
+  { to: "/dashboard",  icon: dashboard_icon,  label: "Dashboard"  },
+  { to: "/add",        icon: add_icon,         label: "Add Items"  },
+  { to: "/list",       icon: list_icon,        label: "List Items" },
+  { to: "/orders",     icon: order_icon,       label: "Orders"     },
+  { to: "/analytics",  icon: analytics_icon,   label: "Analytics"  },
+  { to: "/coupons",    icon: tag_icon,         label: "Coupons"    },
+  { to: "/complaints", icon: comp_icon,        label: "Complaints" },
+];
 
 const Sidebar = () => {
   return (
-    <div className="glass-card min-h-screen border-r border-[#e0d2d8]/50 
-      backdrop-blur-md bg-white/60 shadow-md">
+    <>
+      {/* ─────────────────────────────────────────
+          DESKTOP (lg+): Full sidebar — icon + label
+          TABLET  (md):  Icon-only slim rail
+          MOBILE  (sm-): Hidden (bottom tab bar used instead)
+      ───────────────────────────────────────── */}
+      <div className="hidden md:flex flex-col glass-card min-h-screen border-r border-[#e0d2d8]/50
+        backdrop-blur-md bg-white/60 shadow-md w-full">
 
-      <div className="flex flex-col gap-4 pt-28 pl-[20%] text-[15px]">
-
-        {/* Dashboard */}
-        <NavLink
-          className="flex items-center gap-3 px-4 py-2 rounded-l-lg border border-gray-200 border-r-0 
-          hover:border-black hover:bg-gray-50 transition-all duration-300 group"
-          to="/dashboard"
-        >
-          <img className="w-5 h-5 opacity-80 group-hover:opacity-100 transition"
-            src={dashboard_icon} alt="Dashboard" />
-          <p className="hidden md:block font-light tracking-wide text-gray-700 group-hover:text-black">
-            Dashboard
-          </p>
-        </NavLink>
-
-        {/* Add Items */}
-        <NavLink
-          className="flex items-center gap-3 px-4 py-2 rounded-l-lg border border-gray-200 border-r-0 
-          hover:border-black hover:bg-gray-50 transition-all duration-300 group"
-          to="/add"
-        >
-          <img className="w-5 h-5 opacity-80 group-hover:opacity-100 transition"
-            src={add_icon} alt="Add" />
-          <p className="hidden md:block font-light tracking-wide text-gray-700 group-hover:text-black">
-            Add Items
-          </p>
-        </NavLink>
-
-        {/* List Items */}
-        <NavLink
-          className="flex items-center gap-3 px-4 py-2 rounded-l-lg border border-gray-200 border-r-0 
-          hover:border-black hover:bg-gray-50 transition-all duration-300 group"
-          to="/list"
-        >
-          <img className="w-5 h-5 opacity-80 group-hover:opacity-100 transition"
-            src={list_icon} alt="List" />
-          <p className="hidden md:block font-light tracking-wide text-gray-700 group-hover:text-black">
-            List Items
-          </p>
-        </NavLink>
-
-        {/* Orders */}
-        <NavLink
-          className="flex items-center gap-3 px-4 py-2 rounded-l-lg border border-gray-200 border-r-0 
-          hover:border-black hover:bg-gray-50 transition-all duration-300 group"
-          to="/orders"
-        >
-          <img className="w-5 h-5 opacity-80 group-hover:opacity-100 transition"
-            src={order_icon} alt="Orders" />
-          <p className="hidden md:block font-light tracking-wide text-gray-700 group-hover:text-black">
-            Orders
-          </p>
-        </NavLink>
-
-        {/* ⭐ NEW: Analytics */}
-        <NavLink
-          className="flex items-center gap-3 px-4 py-2 rounded-l-lg border border-gray-200 border-r-0 
-          hover:border-black hover:bg-gray-50 transition-all duration-300 group"
-          to="/analytics"
-        >
-          <img className="w-5 h-5 opacity-80 group-hover:opacity-100 transition"
-            src={analytics_icon} alt="Analytics" />
-          <p className="hidden md:block font-light tracking-wide text-gray-700 group-hover:text-black">
-            Analytics
-          </p>
-        </NavLink>
-
-          <NavLink
-          className="flex items-center gap-3 px-4 py-2 rounded-l-lg border border-gray-200 border-r-0 
-          hover:border-black hover:bg-gray-50 transition-all duration-300 group"
-          to="/Coupons"
-        >
-          <img className="w-5 h-5 opacity-80 group-hover:opacity-100 transition"
-            src={tag_icon} alt="Coupons" />
-          <p className="hidden md:block font-light tracking-wide text-gray-700 group-hover:text-black">
-            Coupons
-          </p>
-        </NavLink>
-
+        <div className="flex flex-col gap-3 pt-28 px-2 lg:pl-[18%] lg:pr-0">
+          {navItems.map(({ to, icon, label }) => (
             <NavLink
-          className="flex items-center gap-3 px-4 py-2 rounded-l-lg border border-gray-200 border-r-0 
-          hover:border-black hover:bg-gray-50 transition-all duration-300 group"
-          to="/Complaints"
-        >
-          <img className="w-5 h-5 opacity-80 group-hover:opacity-100 transition"
-            src={comp_icon} alt="Complaints" />
-          <p className="hidden md:block font-light tracking-wide text-gray-700 group-hover:text-black">
-            Complaints
-          </p>
-        </NavLink>
-
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-l-lg border border-r-0 
+                transition-all duration-300 group
+                ${isActive
+                  ? "border-black bg-gray-100 text-black"
+                  : "border-gray-200 hover:border-black hover:bg-gray-50 text-gray-700"
+                }`
+              }
+            >
+              <img
+                className="w-5 h-5 flex-shrink-0 opacity-80 group-hover:opacity-100 transition"
+                src={icon}
+                alt={label}
+              />
+              {/* Label — only on desktop lg+ */}
+              <p className="hidden lg:block font-light tracking-wide text-sm whitespace-nowrap">
+                {label}
+              </p>
+            </NavLink>
+          ))}
+        </div>
       </div>
-    </div>
+
+      {/* ─────────────────────────────────────────
+          MOBILE (< md): Fixed bottom tab bar
+      ───────────────────────────────────────── */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50
+        bg-white/95 backdrop-blur-lg border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <div className="flex items-center justify-around px-1 py-1.5">
+          {navItems.map(({ to, icon, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200
+                ${isActive
+                  ? "bg-black"
+                  : "hover:bg-gray-100"
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <img
+                    src={icon}
+                    alt={label}
+                    className="w-5 h-5 flex-shrink-0 transition-all duration-200"
+                    style={{ filter: isActive ? "invert(1)" : "none", opacity: isActive ? 1 : 0.55 }}
+                  />
+                  <span
+                    className="text-[9px] font-medium tracking-wide leading-none transition-colors duration-200"
+                    style={{ color: isActive ? "#fff" : "#9ca3af" }}
+                  >
+                    {label.split(" ")[0]}
+                  </span>
+                </>
+              )}
+            </NavLink>
+          ))}
+        </div>
+      </div>
+    </>
   );
 };
 

@@ -10,7 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Coupons from './pages/Coupons'
+import Coupons from './pages/Coupons';
 import Complaints from "./pages/Complaints";
 
 export const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -27,7 +27,6 @@ const App = () => {
 
   return (
     <div className="bg-white min-h-screen text-black font-['Outfit']">
-      {/* 🧩 Toast Container – Luxury B/W Theme */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -58,23 +57,45 @@ const App = () => {
           <Navbar setToken={setToken} />
           <hr className="border-gray-200" />
 
-          {/* ✅ Layout wrapper */}
           <div className="flex w-full">
-            {/* ✅ Sidebar stays sticky, doesn’t scroll with content */}
-            <div className="w-[18%] sticky top-0 self-start h-screen">
+
+            {/* ── Sidebar ──
+                mobile  : 0 width (sidebar renders as bottom tab bar)
+                tablet  : 56px icon-only rail
+                desktop : 18% full sidebar
+            */}
+            <div className="
+              w-0
+              md:w-[56px]
+              lg:w-[18%]
+              sticky top-0 self-start h-screen
+              flex-shrink-0
+            ">
               <Sidebar />
             </div>
 
-            {/* ✅ Main content area scrolls independently */}
-            <div className="w-[82%] overflow-y-auto h-screen px-10 py-12 text-gray-700 text-base">
+            {/* ── Main content ──
+                mobile  : full width, padding-bottom for bottom tab bar
+                tablet  : remaining width after 56px rail
+                desktop : remaining width after 18% sidebar
+            */}
+            <div className="
+              flex-1 min-w-0
+              overflow-y-auto h-screen
+              px-3 sm:px-6 lg:px-10
+              py-6 lg:py-12
+              pt-16 sm:pt-20
+              pb-24 md:pb-6
+              text-gray-700 text-base
+            ">
               <Routes>
-                <Route path="/dashboard" element={<Dashboard token={token} />} />
-                <Route path="/add" element={<Add token={token} />} />
-                <Route path="/list" element={<List token={token} />} />
-                <Route path="/orders" element={<Orders token={token} />} />
-                <Route path="/analytics" element={<Analytics token={token} />} />
-<Route path='/coupons' element={<Coupons token={token} />} />
-<Route path='/complaints' element={<Complaints token={token} />} />
+                <Route path="/dashboard"  element={<Dashboard  token={token} />} />
+                <Route path="/add"        element={<Add        token={token} />} />
+                <Route path="/list"       element={<List       token={token} />} />
+                <Route path="/orders"     element={<Orders     token={token} />} />
+                <Route path="/analytics"  element={<Analytics  token={token} />} />
+                <Route path="/coupons"    element={<Coupons    token={token} />} />
+                <Route path="/complaints" element={<Complaints token={token} />} />
               </Routes>
             </div>
           </div>
