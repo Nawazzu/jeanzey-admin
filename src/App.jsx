@@ -60,7 +60,7 @@ const App = () => {
           <div className="flex w-full">
 
             {/* ── Sidebar ──
-                mobile  : 0 width (sidebar renders as bottom tab bar)
+                mobile  : 0 width (Sidebar renders as fixed bottom tab bar)
                 tablet  : 56px icon-only rail
                 desktop : 18% full sidebar
             */}
@@ -75,17 +75,16 @@ const App = () => {
             </div>
 
             {/* ── Main content ──
-                mobile  : full width, padding-bottom for bottom tab bar
-                tablet  : remaining width after 56px rail
-                desktop : remaining width after 18% sidebar
+                pb-28 on mobile  → clears the ~70px fixed bottom tab bar + breathing room
+                md:pb-6          → normal on tablet/desktop (no tab bar visible)
             */}
             <div className="
               flex-1 min-w-0
-              overflow-y-auto h-screen
+              overflow-y-auto
+              min-h-screen
               px-3 sm:px-6 lg:px-10
-              py-6 lg:py-12
               pt-16 sm:pt-20
-              pb-24 md:pb-6
+              pb-28 md:pb-6
               text-gray-700 text-base
             ">
               <Routes>
@@ -98,9 +97,19 @@ const App = () => {
                 <Route path="/complaints" element={<Complaints token={token} />} />
               </Routes>
             </div>
+
           </div>
         </>
       )}
+
+      {/* Safe-area inset for notched iPhones — prevents tab bar being cut off */}
+      <style>{`
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+          .md\\:hidden.fixed.bottom-0 {
+            padding-bottom: env(safe-area-inset-bottom);
+          }
+        }
+      `}</style>
     </div>
   );
 };

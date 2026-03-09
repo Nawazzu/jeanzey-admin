@@ -1,4 +1,4 @@
-// ========== 1. Dashboard.jsx (Fully Responsive) ==========
+// ========== Dashboard.jsx (Fully Responsive) ==========
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { backendUrl, currency } from "../App";
@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { RotateCw } from "lucide-react";
 
-// 🆕 IMPORT RECHARTS FOR BAR CHART
 import {
   BarChart,
   Bar,
@@ -70,16 +69,33 @@ const Dashboard = ({ token }) => {
           o.items.some((i) => i.status === "Cancelled")
         );
 
-        const totalSales = sortedOrders
-          .filter((o) => o.payment === true)
-          .reduce((sum, o) => sum + o.amount, 0);
+        // ✅ COD-aware totalSales:
+        // — Counts every order that has at least one non-cancelled item
+        // — Recalculates each order's real value from active items only
+        // — Subtracts coupon discounts, adds priority fee
+        const totalSales = sortedOrders.reduce((sum, o) => {
+          const activeItems = o.items.filter((i) => i.status !== "Cancelled");
+          if (activeItems.length === 0) return sum; // fully cancelled — skip entirely
+
+          const activeSubtotal = activeItems.reduce(
+            (s, i) => s + i.price * i.quantity,
+            0
+          );
+          const shippingFee = 50;
+          const priorityFee = o.priorityDelivery
+            ? o.priorityDeliveryFee || 100
+            : 0;
+          const couponDiscount = o.couponDiscount || 0;
+
+          return sum + activeSubtotal + shippingFee + priorityFee - couponDiscount;
+        }, 0);
 
         setStats({
           totalProducts: products.length,
           totalOrders: sortedOrders.length,
           deliveredOrders: delivered.length,
           pendingOrders: pending.length,
-          cancelledOrders: cancelled.length, // 🆕 added internally
+          cancelledOrders: cancelled.length,
           totalSales,
         });
 
@@ -110,33 +126,20 @@ const Dashboard = ({ token }) => {
     return `${day}/${month}/${year} at ${hours}:${minutes}`;
   };
 
-  // ==================== 🆕 BAR CHART DATA ====================
   const chartData = [
-    {
-      name: "Delivered",
-      count: stats.deliveredOrders,
-      color: "#16a34a",
-    },
-    {
-      name: "Pending",
-      count: stats.pendingOrders,
-      color: "#facc15",
-    },
-    {
-      name: "Cancelled",
-      count: stats.cancelledOrders || 0,
-      color: "#dc2626",
-    },
+    { name: "Delivered", count: stats.deliveredOrders, color: "#16a34a" },
+    { name: "Pending",   count: stats.pendingOrders,   color: "#facc15" },
+    { name: "Cancelled", count: stats.cancelledOrders || 0, color: "#dc2626" },
   ];
 
   return (
     <div className="min-h-screen bg-white text-gray-900 px-4 sm:px-6 md:px-10 py-6 sm:py-8 md:py-10 pt-12 sm:pt-16">
+
       {/* Header with Refresh */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-10 gap-4">
         <h2 className="text-2xl sm:text-3xl font-semibold border-b border-gray-300 pb-3 uppercase tracking-wide">
           Admin Dashboard
         </h2>
-
         <button
           onClick={fetchDashboardData}
           className="flex items-center gap-2 border border-black bg-white px-4 py-2 rounded-full 
@@ -154,17 +157,14 @@ const Dashboard = ({ token }) => {
           <h3 className="text-base sm:text-lg font-medium">Total Products</h3>
           <p className="text-2xl sm:text-3xl font-semibold mt-2">{stats.totalProducts}</p>
         </div>
-
         <div className="p-6 bg-gray-100 text-gray-900 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
           <h3 className="text-base sm:text-lg font-medium">Total Orders</h3>
           <p className="text-2xl sm:text-3xl font-semibold mt-2">{stats.totalOrders}</p>
         </div>
-
         <div className="p-6 bg-black text-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
           <h3 className="text-base sm:text-lg font-medium">Delivered Orders</h3>
           <p className="text-2xl sm:text-3xl font-semibold mt-2">{stats.deliveredOrders}</p>
         </div>
-
         <div className="p-6 bg-gray-100 text-gray-900 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
           <h3 className="text-base sm:text-lg font-medium">Pending Orders</h3>
           <p className="text-2xl sm:text-3xl font-semibold mt-2">{stats.pendingOrders}</p>
@@ -183,14 +183,13 @@ const Dashboard = ({ token }) => {
           </p>
         </div>
         <div className="text-gray-400 text-xs sm:text-sm text-center md:text-right">
-          Updated in real time from completed payments
+          All COD orders · excludes cancelled items · coupons deducted
         </div>
       </div>
 
-      {/* ==================== 🆕 ORDERS OVERVIEW BAR CHART ==================== */}
+      {/* Orders Overview Bar Chart */}
       <div className="mb-10 sm:mb-16 p-6 sm:p-8 bg-gray-50 border border-gray-200 rounded-2xl shadow-md">
         <h3 className="text-lg sm:text-xl font-semibold mb-6">Orders Overview</h3>
-
         <div className="w-full h-64 sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
@@ -239,8 +238,7 @@ const Dashboard = ({ token }) => {
                   </td>
                   <td className="py-3">{order.items?.length || 0}</td>
                   <td className="py-3 font-medium">
-                    {currency}
-                    {order.amount}
+                    {currency}{order.amount}
                   </td>
                   <td
                     className={`py-3 font-semibold ${

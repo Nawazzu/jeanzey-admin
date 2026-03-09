@@ -24,11 +24,10 @@ const Sidebar = () => {
       {/* ─────────────────────────────────────────
           DESKTOP (lg+): Full sidebar — icon + label
           TABLET  (md):  Icon-only slim rail
-          MOBILE  (sm-): Hidden (bottom tab bar used instead)
+          MOBILE  (<md): Hidden — bottom tab bar used instead
       ───────────────────────────────────────── */}
       <div className="hidden md:flex flex-col glass-card min-h-screen border-r border-[#e0d2d8]/50
         backdrop-blur-md bg-white/60 shadow-md w-full">
-
         <div className="flex flex-col gap-3 pt-28 px-2 lg:pl-[18%] lg:pr-0">
           {navItems.map(({ to, icon, label }) => (
             <NavLink
@@ -48,7 +47,6 @@ const Sidebar = () => {
                 src={icon}
                 alt={label}
               />
-              {/* Label — only on desktop lg+ */}
               <p className="hidden lg:block font-light tracking-wide text-sm whitespace-nowrap">
                 {label}
               </p>
@@ -58,10 +56,16 @@ const Sidebar = () => {
       </div>
 
       {/* ─────────────────────────────────────────
-          MOBILE (< md): Fixed bottom tab bar
+          MOBILE (<md): Fixed bottom tab bar
+          ✅ env(safe-area-inset-bottom) handles notched iPhones
+             so the bar never gets cut off by the home indicator
       ───────────────────────────────────────── */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50
-        bg-white/95 backdrop-blur-lg border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <div
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50
+          bg-white/95 backdrop-blur-lg border-t border-gray-200
+          shadow-[0_-4px_20px_rgba(0,0,0,0.08)]"
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      >
         <div className="flex items-center justify-around px-1 py-1.5">
           {navItems.map(({ to, icon, label }) => (
             <NavLink
@@ -69,10 +73,7 @@ const Sidebar = () => {
               to={to}
               className={({ isActive }) =>
                 `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200
-                ${isActive
-                  ? "bg-black"
-                  : "hover:bg-gray-100"
-                }`
+                ${isActive ? "bg-black" : "hover:bg-gray-100"}`
               }
             >
               {({ isActive }) => (
@@ -81,7 +82,10 @@ const Sidebar = () => {
                     src={icon}
                     alt={label}
                     className="w-5 h-5 flex-shrink-0 transition-all duration-200"
-                    style={{ filter: isActive ? "invert(1)" : "none", opacity: isActive ? 1 : 0.55 }}
+                    style={{
+                      filter: isActive ? "invert(1)" : "none",
+                      opacity: isActive ? 1 : 0.55,
+                    }}
                   />
                   <span
                     className="text-[9px] font-medium tracking-wide leading-none transition-colors duration-200"

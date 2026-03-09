@@ -11,7 +11,8 @@ const Navbar = ({ setToken }) => {
         <h1 className="font-['Playfair_Display'] text-xl sm:text-3xl font-bold tracking-[0.15em] text-black">
           JEANZEY
         </h1>
-        <span className="font-['Playfair_Display'] text-xs sm:text-base font-light tracking-[0.1em] text-gray-500 italic hidden xs:inline">
+        {/* ✅ Always visible on all screen sizes */}
+        <span className="font-['Playfair_Display'] text-[10px] sm:text-base font-light tracking-[0.1em] text-gray-500 italic">
           Admin
         </span>
       </div>
