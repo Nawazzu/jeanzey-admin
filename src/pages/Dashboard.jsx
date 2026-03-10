@@ -69,26 +69,27 @@ const Dashboard = ({ token }) => {
           o.items.some((i) => i.status === "Cancelled")
         );
 
-        // ✅ COD-aware totalSales:
-        // — Counts every order that has at least one non-cancelled item
-        // — Recalculates each order's real value from active items only
+        // ✅ totalSales: only orders manually marked as Paid (payment === true)
+        // — Recalculates from active items only (excludes cancelled)
         // — Subtracts coupon discounts, adds priority fee
-        const totalSales = sortedOrders.reduce((sum, o) => {
-          const activeItems = o.items.filter((i) => i.status !== "Cancelled");
-          if (activeItems.length === 0) return sum; // fully cancelled — skip entirely
+        const totalSales = sortedOrders
+          .filter((o) => o.payment === true)
+          .reduce((sum, o) => {
+            const activeItems = o.items.filter((i) => i.status !== "Cancelled");
+            if (activeItems.length === 0) return sum;
 
-          const activeSubtotal = activeItems.reduce(
-            (s, i) => s + i.price * i.quantity,
-            0
-          );
-          const shippingFee = 50;
-          const priorityFee = o.priorityDelivery
-            ? o.priorityDeliveryFee || 100
-            : 0;
-          const couponDiscount = o.couponDiscount || 0;
+            const activeSubtotal = activeItems.reduce(
+              (s, i) => s + i.price * i.quantity,
+              0
+            );
+            const shippingFee = 50;
+            const priorityFee = o.priorityDelivery
+              ? o.priorityDeliveryFee || 100
+              : 0;
+            const couponDiscount = o.couponDiscount || 0;
 
-          return sum + activeSubtotal + shippingFee + priorityFee - couponDiscount;
-        }, 0);
+            return sum + activeSubtotal + shippingFee + priorityFee - couponDiscount;
+          }, 0);
 
         setStats({
           totalProducts: products.length,
@@ -183,7 +184,7 @@ const Dashboard = ({ token }) => {
           </p>
         </div>
         <div className="text-gray-400 text-xs sm:text-sm text-center md:text-right">
-          All COD orders · excludes cancelled items · coupons deducted
+          Paid orders only · excludes cancelled items · coupons deducted
         </div>
       </div>
 

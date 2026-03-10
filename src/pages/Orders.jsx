@@ -3,7 +3,7 @@ import axios from "axios";
 import { backendUrl, currency } from "../App";
 import { toast } from "react-toastify";
 import { assets } from "../assets/assets";
-import { Zap, RotateCw, CreditCard, ChevronDown } from "lucide-react";
+import { Zap, RotateCw } from "lucide-react";
 
 const Orders = ({ token }) => {
   const [orders, setOrders] = useState([]);
@@ -14,20 +14,7 @@ const Orders = ({ token }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const debounceRef = useRef(null);
 
-  // Payment dropdown open state — keyed by orderId
-  const [openPaymentDropdown, setOpenPaymentDropdown] = useState(null);
-  const paymentDropdownRef = useRef(null);
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handler = (e) => {
-      if (paymentDropdownRef.current && !paymentDropdownRef.current.contains(e.target)) {
-        setOpenPaymentDropdown(null);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  // Payment dropdown open state removed — now using native select
 
   // Format date
   const formatDateTime = (timestamp) => {
@@ -117,7 +104,6 @@ const Orders = ({ token }) => {
           isPaid ? "Payment marked as Received" : "Payment marked as Pending",
           "success"
         );
-        setOpenPaymentDropdown(null);
         await fetchAllOrders(false);
       } else {
         glassToast(response.data.message || "Failed to update payment", "error");
@@ -139,6 +125,10 @@ const Orders = ({ token }) => {
       setFilteredOrders(orders.filter((o) => o.items.filter((i) => i.status !== "Cancelled").every((i) => i.status === "Delivered")));
     else if (filter === "Priority")
       setFilteredOrders(orders.filter((o) => o.priorityDelivery === true));
+    else if (filter === "Paid")
+      setFilteredOrders(orders.filter((o) => o.payment === true));
+    else if (filter === "Unpaid")
+      setFilteredOrders(orders.filter((o) => o.payment !== true));
   }, [filter, orders, searchTerm]);
 
   // Debounced search
@@ -200,48 +190,60 @@ const Orders = ({ token }) => {
     <div className="min-h-screen bg-white text-gray-900 px-3 sm:px-5 md:px-8 py-8 pt-20">
 
       {/* HEADER ROW */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
-          <h3 className="text-2xl sm:text-3xl font-semibold border-b border-gray-300 pb-3 tracking-wide uppercase">
-            Orders ({filteredOrders.length})
-          </h3>
-          <button
-            onClick={handleRefresh}
-            className="flex items-center gap-2 border border-black bg-white px-4 py-2 rounded-full 
-            text-sm font-medium text-black hover:bg-black hover:text-white transition-all duration-300 w-full sm:w-auto justify-center"
-          >
-            <RotateCw size={18} />
-            Refresh
-          </button>
+      <div className="flex flex-col gap-4 mb-8">
+
+        {/* Row 1: Title + Refresh + Search */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div className="flex flex-row items-center gap-3">
+            <h3 className="text-2xl sm:text-3xl font-semibold border-b border-gray-300 pb-3 tracking-wide uppercase">
+              Orders ({filteredOrders.length})
+            </h3>
+            <button
+              onClick={handleRefresh}
+              className="flex items-center gap-2 border border-black bg-white px-4 py-2 rounded-full 
+              text-sm font-medium text-black hover:bg-black hover:text-white transition-all duration-300"
+            >
+              <RotateCw size={18} />
+              Refresh
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <input
+              type="text"
+              placeholder="Search Order ID / Name / Phone / City"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1 sm:w-72 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-black focus:outline-none text-sm"
+            />
+            <button
+              onClick={exportToCSV}
+              className="shrink-0 px-4 py-2 rounded-lg text-sm font-medium border border-black bg-black text-white hover:bg-white hover:text-black transition-all duration-300"
+            >
+              Export
+            </button>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <input
-            type="text"
-            placeholder="Search Order ID / Name / Phone / City"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-black focus:outline-none text-sm"
-          />
-          {["All", "Active", "Priority", "Cancelled", "Delivered"].map((filterOption) => (
+        {/* Row 2: Filter pills — scrollable on mobile */}
+        <div className="flex flex-wrap gap-2">
+          {["All", "Active", "Priority", "Cancelled", "Delivered", "Paid", "Unpaid"].map((filterOption) => (
             <button
               key={filterOption}
               onClick={() => { setSearchTerm(""); setFilter(filterOption); }}
-              className={`px-3 sm:px-4 py-2 text-sm font-medium rounded transition-all duration-300 ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded transition-all duration-300 whitespace-nowrap ${
                 filter === filterOption
-                  ? filterOption === "Priority" ? "bg-yellow-500 text-white shadow-lg" : "bg-black text-white"
+                  ? filterOption === "Priority"
+                    ? "bg-yellow-500 text-white shadow-lg"
+                    : "bg-black text-white shadow"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              {filterOption === "Priority" ? "⚡ Priority" : filterOption}
+              {filterOption === "Priority" ? "⚡ Priority"
+                : filterOption === "Paid" ? "✓ Paid"
+                : filterOption}
             </button>
           ))}
-          <button
-            onClick={exportToCSV}
-            className="px-4 py-2 rounded-lg text-sm font-medium border border-black bg-black text-white hover:bg-white hover:text-black transition-all duration-300"
-          >
-            Export Orders
-          </button>
         </div>
       </div>
 
@@ -455,63 +457,20 @@ const Orders = ({ token }) => {
                       </select>
                     </div>
 
-                    {/* RIGHT — Payment status dropdown */}
-                    <div className="relative" ref={openPaymentDropdown === order._id ? paymentDropdownRef : null}>
+                    {/* RIGHT — Payment status select (matches order status select) */}
+                    <div>
                       <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">
                         Payment Status
                       </p>
-
-                      {/* Trigger button */}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setOpenPaymentDropdown(
-                            openPaymentDropdown === order._id ? null : order._id
-                          )
-                        }
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-bold border-2 min-w-[180px] justify-between transition-all duration-200 bg-black text-white border-black hover:bg-gray-900"
+                      <select
+                        onChange={(e) => paymentHandler(order._id, e.target.value === "true")}
+                        value={String(isPaid)}
+                        className="px-4 py-2.5 rounded-md text-sm font-bold bg-black text-white border-2 border-gray-800
+                        focus:outline-none focus:ring-2 focus:ring-black cursor-pointer transition-all duration-300 hover:bg-gray-900 min-w-[180px]"
                       >
-                        <span className="flex items-center gap-2">
-                          <CreditCard size={15} />
-                          {isPaid ? "✓ Paid" : "Pending"}
-                        </span>
-                        <ChevronDown
-                          size={15}
-                          className={`transition-transform duration-200 ${openPaymentDropdown === order._id ? "rotate-180" : ""}`}
-                        />
-                      </button>
-
-                      {/* Dropdown panel — matches black order status select */}
-                      {openPaymentDropdown === order._id && (
-                        <div className="absolute left-0 mt-0.5 w-[180px] bg-black border-2 border-gray-800 rounded-md shadow-2xl z-30 overflow-hidden">
-
-                          {/* Received option */}
-                          <button
-                            type="button"
-                            onClick={() => paymentHandler(order._id, true)}
-                            className={`w-full text-left px-4 py-2.5 text-sm font-bold transition-colors ${
-                              isPaid
-                                ? "bg-[#1a3a6b] text-white"
-                                : "text-white hover:bg-gray-800"
-                            }`}
-                          >
-                            ✓ Paid
-                          </button>
-
-                          {/* Pending option */}
-                          <button
-                            type="button"
-                            onClick={() => paymentHandler(order._id, false)}
-                            className={`w-full text-left px-4 py-2.5 text-sm font-bold transition-colors ${
-                              !isPaid
-                                ? "bg-[#1a3a6b] text-white"
-                                : "text-white hover:bg-gray-800"
-                            }`}
-                          >
-                            Pending
-                          </button>
-                        </div>
-                      )}
+                        <option value="true">✓ Paid</option>
+                        <option value="false">Pending</option>
+                      </select>
                     </div>
                   </div>
                 ) : (
