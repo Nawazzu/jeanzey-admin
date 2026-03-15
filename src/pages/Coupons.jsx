@@ -247,7 +247,7 @@ const Coupons = ({ token }) => {
 
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-full hover:bg-gray-800 transition-all duration-200 text-sm tracking-wide shadow-md"
+            className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-full border border-black hover:bg-white hover:text-black active:bg-white active:text-black transition-all duration-200 text-sm tracking-wide shadow-md"
           >
             {showForm ? <><X size={15} /> Cancel</> : <><Sparkles size={15} /> New Coupon</>}
           </button>
