@@ -8,7 +8,7 @@ import { Plus, Tag, Calendar, RotateCcw, Trash2, ToggleLeft, ToggleRight, X, Spa
 const Coupons = ({ token }) => {
   const [coupons, setCoupons] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [reactivatingId, setReactivatingId] = useState(null); // track loading state per card
+  const [reactivatingId, setReactivatingId] = useState(null);
   const [formData, setFormData] = useState({
     code: '',
     type: 'percentage',
@@ -98,16 +98,11 @@ const Coupons = ({ token }) => {
     }
   };
 
-  // Reactivate expired coupon:
-  // 1. Extend validUntil by 30 days from today
-  // 2. Set isActive: true
-  // Both fields sent together so backend processes in one call
   const reactivateCoupon = async (id) => {
     setReactivatingId(id);
     try {
       const newValidUntil = new Date();
       newValidUntil.setDate(newValidUntil.getDate() + 30);
-      // ISO date string in YYYY-MM-DD format (what date inputs use)
       const formatted = newValidUntil.toISOString().split('T')[0];
 
       const response = await axios.post(
@@ -118,8 +113,6 @@ const Coupons = ({ token }) => {
 
       if (response.data.success) {
         glassToast('✓ Coupon reactivated for 30 days!', 'success');
-        // Optimistically update local state immediately so the card
-        // moves to the Active section before the network refetch completes
         setCoupons(prev =>
           prev.map(c =>
             c._id === id
@@ -127,7 +120,6 @@ const Coupons = ({ token }) => {
               : c
           )
         );
-        // Then refetch from server to ensure full sync
         await fetchCoupons();
       } else {
         glassToast(response.data.message || 'Failed to reactivate', 'error');
@@ -357,7 +349,7 @@ const Coupons = ({ token }) => {
                   Cancel
                 </button>
                 <button type="submit"
-                  className="px-8 py-2.5 bg-black text-white rounded-full text-sm hover:bg-gray-800 transition-all">
+                  className="px-8 py-2.5 bg-black text-white rounded-full text-sm border border-black hover:bg-white hover:text-black active:bg-white active:text-black transition-all">
                   Create Coupon
                 </button>
               </div>
@@ -517,7 +509,6 @@ const CouponCard = ({ coupon, isExpired, isReactivating, onToggle, onDelete, onR
         {/* Action buttons */}
         <div className="flex gap-2 pt-1">
           {isExpired ? (
-            // ── Reactivate button (expired coupons only) ──
             <button
               onClick={() => onReactivate(coupon._id)}
               disabled={isReactivating}
@@ -527,7 +518,6 @@ const CouponCard = ({ coupon, isExpired, isReactivating, onToggle, onDelete, onR
               {isReactivating ? 'Reactivating…' : 'Reactivate (+30 days)'}
             </button>
           ) : (
-            // ── Activate / Deactivate toggle ──
             <button
               onClick={() => onToggle(coupon._id, coupon.isActive)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 border ${

@@ -35,7 +35,7 @@ const TIMEFRAMES = {
 };
 
 const Analytics = ({ token }) => {
-  const [allOrders, setAllOrders] = useState([]); // full fetched orders
+  const [allOrders, setAllOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(false);
@@ -43,9 +43,8 @@ const Analytics = ({ token }) => {
   const pollingRef = useRef(null);
   const navigate = useNavigate();
 
-  // UI state
   const [timeframe, setTimeframe] = useState(TIMEFRAMES.WEEKLY);
-  const [expandedChart, setExpandedChart] = useState(null); // "sales" | "payments" | "products" | null
+  const [expandedChart, setExpandedChart] = useState(null);
 
   const glassToast = (message, type = "info") =>
     toast[type](message, {
@@ -106,7 +105,6 @@ const Analytics = ({ token }) => {
   useEffect(() => {
     if (token) fetchAll();
 
-    // Poll for realtime widget
     if (token) {
       pollingRef.current = setInterval(async () => {
         try {
@@ -116,22 +114,19 @@ const Analytics = ({ token }) => {
             { headers: { token } }
           );
           setRealtimeRecent((res.data.orders || []).slice(0, 6));
-        } catch (e) {
-          // ignore polling errors
-        }
+        } catch (e) {}
       }, 10000);
     }
 
     return () => clearInterval(pollingRef.current);
   }, [token]);
 
-  // ----- Timeframe filtering helper -----
   const filterByTimeframe = (orders, tf) => {
     if (!tf) return orders;
     const now = new Date();
     let from;
     if (tf === TIMEFRAMES.TODAY) {
-      from = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // midnight today
+      from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     } else if (tf === TIMEFRAMES.WEEKLY) {
       from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     } else if (tf === TIMEFRAMES.MONTHLY) {
@@ -142,10 +137,8 @@ const Analytics = ({ token }) => {
     return orders.filter((o) => new Date(o.date) >= from);
   };
 
-  // filteredOrders used by charts & computed data
   const filteredOrders = useMemo(() => filterByTimeframe(allOrders, timeframe), [allOrders, timeframe]);
 
-  // Line Chart Data (animated)
   const salesTrend = useMemo(() => {
     const map = {};
     filteredOrders.forEach((o) => {
@@ -156,19 +149,16 @@ const Analytics = ({ token }) => {
       if (!map[key]) map[key] = 0;
       if (o.payment) map[key] += o.amount || 0;
     });
-    // sort dates chronologically
     const entries = Object.keys(map)
       .map((k) => ({ date: k, sales: Math.round(map[k]) }))
       .sort((a, b) => {
         const [ad, am] = a.date.split("/").map(Number);
         const [bd, bm] = b.date.split("/").map(Number);
-        // naive but ok for short windows
         return new Date(am, ad) - new Date(bm, bd);
       });
     return entries;
   }, [filteredOrders]);
 
-  // Pie Data
   const paymentBreakdown = useMemo(() => {
     const map = {};
     filteredOrders.forEach((o) => {
@@ -178,7 +168,6 @@ const Analytics = ({ token }) => {
     return Object.entries(map).map(([name, value]) => ({ name, value }));
   }, [filteredOrders]);
 
-  // Top Products
   const topProducts = useMemo(() => {
     const map = {};
     filteredOrders.forEach((o) =>
@@ -193,10 +182,8 @@ const Analytics = ({ token }) => {
       .slice(0, 8);
   }, [filteredOrders]);
 
-  // helper to toggle expand-in-page for a chart
   const toggleExpand = (chartKey) => {
     setExpandedChart((prev) => (prev === chartKey ? null : chartKey));
-    // scroll the chart into view when expanding
     setTimeout(() => {
       const el = document.getElementById(`chart-${chartKey}`);
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -211,20 +198,19 @@ const Analytics = ({ token }) => {
     );
   }
 
-  // small helpers for animation props reused
   const lineProps = { animationDuration: 1000, isAnimationActive: true };
   const barProps = { animationDuration: 1000, isAnimationActive: true };
-  const pieProps = { startAngle: 90, endAngle: -270 }; // spins in
+  const pieProps = { startAngle: 90, endAngle: -270 };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 px-6 py-10 pt-16">
+    <div className="min-h-screen bg-white text-gray-900 px-4 sm:px-6 py-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
         <h1 className="text-3xl font-semibold">Analytics</h1>
 
-        <div className="flex gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center">
           {/* Timeframe Buttons */}
-          <div className="flex items-center gap-2 mr-4">
+          <div className="flex items-center gap-2">
             {Object.values(TIMEFRAMES).map((tf) => (
               <button
                 key={tf}
@@ -240,14 +226,14 @@ const Analytics = ({ token }) => {
 
           <button
             onClick={fetchAll}
-            className="px-4 py-2 bg-black text-white rounded hover:bg-white hover:text-black border border-black"
+            className="px-4 py-2 bg-black text-white rounded hover:bg-white hover:text-black border border-black transition-all"
             title="Refresh data"
           >
             Refresh
           </button>
           <button
             onClick={() => navigate("/dashboard")}
-            className="px-4 py-2 bg-black-100 rounded border hover:bg-gray-200"
+            className="px-4 py-2 rounded border hover:bg-gray-200 transition-all"
           >
             Back to Dashboard
           </button>
@@ -312,8 +298,8 @@ const Analytics = ({ token }) => {
         </div>
       </div>
 
-      {/* Payment Methods (Expandable) & Top Products (Expandable) side-by-side */}
-      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8`}>
+      {/* Payment Methods & Top Products */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Payment Methods */}
         <div
           id="chart-payments"
@@ -348,7 +334,7 @@ const Analytics = ({ token }) => {
                     <Cell key={i} fill={["#0ea5a4", "#60a5fa", "#f97316", "#a78bfa"][i % 4]} />
                   ))}
                 </Pie>
-                <Legend verticalAlign={expandedChart === "payments" ? "bottom" : "bottom"} />
+                <Legend verticalAlign="bottom" />
                 <Tooltip formatter={(v) => `${v} orders`} />
               </PieChart>
             </ResponsiveContainer>

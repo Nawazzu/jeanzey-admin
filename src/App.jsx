@@ -54,8 +54,11 @@ const App = () => {
         <Login setToken={setToken} />
       ) : (
         <>
+          {/* Fixed navbar — sits above everything */}
           <Navbar setToken={setToken} />
-          <hr className="border-gray-200" />
+
+          {/* This spacer pushes content below the fixed navbar */}
+          <div className="h-[56px] sm:h-[72px]" />
 
           <div className="flex w-full">
 
@@ -63,27 +66,33 @@ const App = () => {
                 mobile  : 0 width (Sidebar renders as fixed bottom tab bar)
                 tablet  : 56px icon-only rail
                 desktop : 18% full sidebar
+                position: fixed on md+ so it never scrolls with content
             */}
+            {/* Sidebar wrapper — always rendered so mobile bottom tab bar shows */}
             <div className="
-              w-0
               md:w-[56px]
               lg:w-[18%]
-              sticky top-0 self-start h-screen
+              md:fixed
+              md:top-[56px] md:sm:top-[72px]
+              md:left-0
+              md:bottom-0
               flex-shrink-0
+              z-40
             ">
               <Sidebar />
             </div>
 
+            {/* ── Offset spacer so content doesn't hide under fixed sidebar on md+ ── */}
+            <div className="hidden md:block md:w-[56px] lg:w-[18%] flex-shrink-0" />
+
             {/* ── Main content ──
-                pb-28 on mobile  → clears the ~70px fixed bottom tab bar + breathing room
-                md:pb-6          → normal on tablet/desktop (no tab bar visible)
+                pb-28 on mobile  → clears the ~70px fixed bottom tab bar
+                md:pb-6          → normal on tablet/desktop
             */}
             <div className="
               flex-1 min-w-0
-              overflow-y-auto
-              min-h-screen
               px-3 sm:px-6 lg:px-10
-              pt-16 sm:pt-20
+              pt-4 sm:pt-6
               pb-28 md:pb-6
               text-gray-700 text-base
             ">
