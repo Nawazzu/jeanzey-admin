@@ -444,7 +444,7 @@ const Complaints = ({ token }) => {
                         </span>
                         {/* Order ref — hidden on xs */}
                         <span className="hidden sm:inline text-xs text-gray-400 font-mono">
-                          #{complaint.orderId?.slice(-8).toUpperCase()}
+                         {complaint.orderId || `#${complaint.orderId?.slice(-8).toUpperCase()}`}
                         </span>
                       </div>
                       <p className="text-sm font-semibold text-gray-900 truncate leading-snug">
@@ -501,7 +501,7 @@ const Complaints = ({ token }) => {
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {[
                           { label: 'Item Price', value: `₹${complaint.itemPrice}` },
-                          { label: 'Order Ref', value: `#${complaint.orderId?.slice(-8).toUpperCase()}` },
+                          { label: 'Order Ref', value: complaint.orderId || `#${complaint.orderId?.slice(-8).toUpperCase()}` },
                           { label: 'Submitted', value: formatDate(complaint.createdAt) },
                           complaint.resolvedAt
                             ? { label: 'Resolved', value: formatDate(complaint.resolvedAt) }

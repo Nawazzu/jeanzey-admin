@@ -131,7 +131,7 @@ const Orders = ({ token }) => {
       setFilteredOrders(orders.filter((o) => o.payment !== true));
   }, [filter, orders, searchTerm]);
 
-  // Debounced search
+  // Debounced search — CHANGE: also searches short orderId
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -142,6 +142,7 @@ const Orders = ({ token }) => {
       const term = searchTerm.toLowerCase();
       const result = orders.filter((order) =>
         order._id.toLowerCase().includes(term) ||
+        (order.orderId && order.orderId.toLowerCase().includes(term)) ||
         order.address.firstName.toLowerCase().includes(term) ||
         order.address.lastName.toLowerCase().includes(term) ||
         order.address.phone.toLowerCase().includes(term) ||
@@ -165,7 +166,7 @@ const Orders = ({ token }) => {
   // CSV Export
   const exportToCSV = () => {
     if (filteredOrders.length === 0) { glassToast("No orders available to export", "error"); return; }
-    const csvHeader = ["Order ID","Customer Name","Phone","City","State","Country","Payment","Subtotal","Shipping","Priority Fee","Coupon Code","Coupon Discount","Total","Date","Status"];
+    const csvHeader = ["Order ID","Short ID","Customer Name","Phone","City","State","Country","Payment","Subtotal","Shipping","Priority Fee","Coupon Code","Coupon Discount","Total","Date","Status"];
     const rows = filteredOrders.map((order) => {
       const customerName = `${order.address.firstName} ${order.address.lastName}`;
       const paymentStatus = order.payment ? "Paid" : "Pending";
@@ -174,7 +175,7 @@ const Orders = ({ token }) => {
       const couponDiscount = order.couponDiscount || 0;
       const subtotal = order.items.filter((i) => i.status !== "Cancelled").reduce((sum, i) => sum + i.price * i.quantity, 0);
       const total = subtotal + shipping + priorityFee - couponDiscount;
-      return [order._id, customerName, order.address.phone, order.address.city, order.address.state, order.address.country, paymentStatus, subtotal, shipping, priorityFee, order.couponCode || "—", couponDiscount, total, formatDateTime(order.date), order.status];
+      return [order._id, order.orderId || "—", customerName, order.address.phone, order.address.city, order.address.state, order.address.country, paymentStatus, subtotal, shipping, priorityFee, order.couponCode || "—", couponDiscount, total, formatDateTime(order.date), order.status];
     });
     const csvContent = "data:text/csv;charset=utf-8," + [csvHeader, ...rows].map((e) => e.join(",")).join("\n");
     const encodedUri = encodeURI(csvContent);
@@ -266,6 +267,9 @@ const Orders = ({ token }) => {
           // Payment status
           const isPaid = order.payment === true;
 
+          // CHANGE: use short orderId if available, fallback to _id
+          const displayId = order.orderId || order._id;
+
           return (
             <div key={index}>
               {/* ORDER CARD */}
@@ -279,8 +283,13 @@ const Orders = ({ token }) => {
                 <div className="flex flex-col sm:flex-row justify-between items-start mb-6 pb-4 border-b border-gray-300 gap-3">
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Order ID</p>
+                    {/* CHANGE: display short orderId */}
                     <p className="font-mono text-sm font-medium text-gray-900 break-all"
-                      dangerouslySetInnerHTML={{ __html: highlightText(order._id) }} />
+                      dangerouslySetInnerHTML={{ __html: highlightText(displayId) }} />
+                    {/* Show full _id as subtitle if short ID exists */}
+                    {order.orderId && (
+                      <p className="font-mono text-[10px] text-gray-400 mt-0.5 break-all">{order._id}</p>
+                    )}
                     {hasCancelledItems && hasActiveItems && (
                       <div className="mt-2 inline-flex items-center gap-2 bg-orange-100 border border-orange-400 text-orange-800 px-3 py-1 rounded-full text-xs font-semibold">
                         ⚠️ Partial Cancellation: {cancelledItems.length} of {order.items.length} items cancelled
